@@ -28,8 +28,7 @@ collection_data = collection_cursor.fetchall()
 dl_cursor.execute("SELECT _id, scryfall_id FROM cards")
 dl_data = dl_cursor.fetchall()
 
-# Create a dictionary to store card IDs and quantities
-card_quantity_dict = {card_id: quantity for card_id, quantity in collection_data}
+card_def_dict = {card_id: scryfall_id for card_id, scryfall_id in dl_data}
 
 # Function to query Scryfall API and retrieve card details
 def query_scryfall_api(scryfall_id):
@@ -41,6 +40,7 @@ def query_scryfall_api(scryfall_id):
         set_code = card_data.get('set')
         collector_number = card_data.get('collector_number')
         return card_name, set_code, collector_number
+    print("scryfall error")
     return None, None, None
 
 # Prepare the CSV file
@@ -50,9 +50,9 @@ output_csv.writeheader()
 
 # Match Scryfall IDs with quantities, query Scryfall API for card details, and write to the CSV file
 start_time = time.time()
-for row in dl_data:
-    card_id, scryfall_id = row
-    quantity = card_quantity_dict.get(card_id)
+for row in collection_data:
+    card_id, quantity = row
+    scryfall_id = card_def_dict.get(card_id)
 
     if quantity is not None:
         card_name, set_code, collector_number = query_scryfall_api(scryfall_id)
@@ -73,6 +73,7 @@ for row in dl_data:
                 'Proxy': '',
                 'Purchase Price': ''
             }
+            print("matched"+card_name)
             output_csv.writerow(csv_row)
 
 end_time = time.time()
